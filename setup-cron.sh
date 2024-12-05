@@ -2,6 +2,14 @@
 
 LOG=/var/log/copy.log
 
+# Set the timezone
+if [ -n "$TIMEZONE" ]; then
+    printf "Setting timezone to $TIMEZONE\n" >> $LOG
+    ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime && echo $TIMEZONE > /etc/timezone
+else
+    printf "Warning: TIMEZONE environment variable not set. Using default (UTC).\n" >> $LOG
+fi
+
 # Check if BACKUP_CRON is set
 if [ -z "$BACKUP_CRON" ]; then
     printf "Error: BACKUP_CRON environment variable must be set.\n" >> $LOG
