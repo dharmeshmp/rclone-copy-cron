@@ -35,7 +35,7 @@ docker run --rm \
   -e RCLONE_DESTINATION=backup:my-destination-bucket \
   -e RCLONE_OPTIONS="--progress --checksum" \
   -e TIME_ZONE="Asia/Kolkata" \
-  rclone-copy-cron
+  dharmeshmp/rclone-copy-cron
 ```
 
 ---
@@ -51,7 +51,7 @@ docker run -d \
   -e RCLONE_OPTIONS="--progress --checksum" \
   -e BACKUP_CRON="0 2 * * *" \
   -e TIME_ZONE="Asia/Kolkata" \
-  rclone-copy-cron
+  dharmeshmp/rclone-copy-cron
 ```
 
 ---
@@ -62,7 +62,7 @@ docker run -d \
 version: "3.9"
 services:
   backup:
-    image: rclone-copy-cron
+    image: dharmeshmp/rclone-copy-cron
     environment:
       - RCLONE_SOURCE=source:my-source-bucket
       - RCLONE_DESTINATION=backup:my-destination-bucket
@@ -132,7 +132,7 @@ docker run --rm -it \
   -e RCLONE_SOURCE="s3:my-source-bucket" \
   -e RCLONE_DESTINATION="do:my-destination-bucket" \
   -e RCLONE_OPTIONS="--progress --fast-list --transfers=32 --checkers=64 --checksum" \
-  rclone-copy-cron
+  dharmeshmp/rclone-copy-cron
 ```
 
 ---
