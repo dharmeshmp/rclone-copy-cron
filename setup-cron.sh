@@ -10,11 +10,23 @@ else
     printf "Warning: TIMEZONE environment variable not set. Using default (UTC).\n" >> $LOG
 fi
 
-# Check if BACKUP_CRON is set
-if [ -z "$BACKUP_CRON" ]; then
-    printf "Error: BACKUP_CRON environment variable must be set.\n" >> $LOG
+# Check if required variables are set
+if [ -z "$RCLONE_SOURCE" ] || [ -z "$RCLONE_DESTINATION" ]; then
+    echo "Error: RCLONE_SOURCE and RCLONE_DESTINATION must be set."
     exit 1
 fi
+
+
+# If BACKUP_CRON is not set, run the backup immediately and exit
+if [ -z "$BACKUP_CRON" ]; then
+    echo "BACKUP_CRON is not set. Starting immediate backup..."
+    rclone copy $RCLONE_SOURCE $RCLONE_DESTINATION $RCLONE_OPTIONS
+    echo "Backup completed. Exiting..."
+    exit 0
+fi
+
+# If BACKUP_CRON is set, set up cron
+echo "BACKUP_CRON is set. Scheduling the backup with cron..."
 
 # Set the cron job to redirect both stdout and stderr to the log file
 echo "$BACKUP_CRON /etc/copy.sh" >> /var/spool/cron/crontabs/root
