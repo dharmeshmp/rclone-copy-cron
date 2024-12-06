@@ -1,15 +1,16 @@
 # **rclone-copy-cron**
 
-A lightweight Docker image for automated file copy operations using **Rclone** with cron. This image is designed to periodically copy data between a source and destination using Rclone, with configurable schedules via environment variables.
+A lightweight Docker image for automated file copy operations using **Rclone** with cron. This image supports both **scheduled backups** via cron and **immediate backups**, making it perfect for flexible and reliable cloud storage management.
 
+---
 
 ## **Features**  
-- Automatic file copying using cron.
-- Customizable copy schedule with `BACKUP_CRON`.
-- Supports multiple cloud storage providers with Rclone.
-- Logs copy activity for easy monitoring.
-- Lightweight and simple to set up.
-- Configurable timezone for cron jobs via the `TIME_ZONE` environment variable.  
+- **Scheduled Backups**: Automate file copy operations using the `BACKUP_CRON` environment variable.  
+- **Immediate Backups**: If `BACKUP_CRON` is not set, the backup runs immediately, and the container exits.  
+- **Multi-Cloud Compatibility**: Works seamlessly with Rclone-supported cloud storage providers.  
+- **Configurable Time Zone**: Use the `TIME_ZONE` variable to set your desired timezone for cron scheduling.  
+- **Comprehensive Logs**: Real-time and persistent logs for monitoring backup activity.  
+- **Customizable Rclone Options**: Add advanced Rclone options for tailored performance.
 
 ---
 
@@ -17,14 +18,31 @@ A lightweight Docker image for automated file copy operations using **Rclone** w
 
 ### Prerequisites
 
-- Docker installed on your system.
-- Rclone properly configured with the necessary remotes.
+- Docker installed on your system.  
+- Rclone configured with necessary remotes (e.g., AWS S3, Google Drive).
 
 ---
 
 ## **Usage**
 
-### **Docker Run Example**
+### **1. Immediate Backup (No Cron)**
+
+Run the container without specifying `BACKUP_CRON` to start a backup immediately and stop the container upon completion:
+
+```bash
+docker run --rm \
+  -e RCLONE_SOURCE=source:my-source-bucket \
+  -e RCLONE_DESTINATION=backup:my-destination-bucket \
+  -e RCLONE_OPTIONS="--progress --checksum" \
+  -e TIME_ZONE="Asia/Kolkata" \
+  rclone-copy-cron
+```
+
+---
+
+### **2. Scheduled Backup**
+
+Specify a `BACKUP_CRON` expression to schedule periodic backups:
 
 ```bash
 docker run -d \
@@ -33,15 +51,12 @@ docker run -d \
   -e RCLONE_OPTIONS="--progress --checksum" \
   -e BACKUP_CRON="0 2 * * *" \
   -e TIME_ZONE="Asia/Kolkata" \
-  -e RCLONE_CONFIG_SOURCE_TYPE=s3 \
-  -e RCLONE_CONFIG_SOURCE_PROVIDER=AWS \
-  -e RCLONE_CONFIG_SOURCE_ACCESS_KEY_ID=your-access-key \
-  -e RCLONE_CONFIG_SOURCE_SECRET_ACCESS_KEY=your-secret-key \
   rclone-copy-cron
 ```
 
+---
 
-### **Docker Compose Example**
+### **3. Docker Compose Example**
 
 ```yaml
 version: "3.9"
@@ -64,32 +79,32 @@ services:
 
 ## **Environment Variables**
 
-| Variable                       | Description                                                                                   | Default       |
-|--------------------------------|-----------------------------------------------------------------------------------------------|---------------|
-| `RCLONE_SOURCE`                | Source path for rclone to copy files from.                                                    | None          |
-| `RCLONE_DESTINATION`           | Destination path for rclone to copy files to.                                                 | None          |
-| `RCLONE_OPTIONS`               | Additional rclone options (e.g., `--progress --checksum`).                                    | None          |
-| `BACKUP_CRON`                  | Cron expression to schedule the rclone copy task.                                             | None          |
-| `TIME_ZONE`                    | Timezone for the container (e.g., `Asia/Kolkata`, `UTC`).                                      | `UTC`         |
-| `RCLONE_CONFIG_SOURCE_*`       | Configuration for the source remote (e.g., provider, keys, region).                           | None          |
-| `RCLONE_CONFIG_DESTINATION_*`  | Configuration for the destination remote (e.g., provider, keys, region).                      | None          |
+| Variable                       | Required | Description                                                                                   | Default       |
+|--------------------------------|----------|-----------------------------------------------------------------------------------------------|---------------|
+| `RCLONE_SOURCE`                | ✅       | Source path for Rclone to copy files from.                                                    | None          |
+| `RCLONE_DESTINATION`           | ✅       | Destination path for Rclone to copy files to.                                                 | None          |
+| `RCLONE_OPTIONS`               | ✅       | Additional Rclone options (e.g., `--progress --checksum`).                                    | None          |
+| `BACKUP_CRON`                  | ❌       | Cron expression to schedule backups. If not set, the backup runs immediately and exits.       | None          |
+| `TIME_ZONE`                    | ❌       | Timezone for the container (e.g., `Asia/Kolkata`, `UTC`).                                      | `UTC`         |
+| `RCLONE_CONFIG_SOURCE_*`       | ✅       | Configuration for the source remote (e.g., provider, keys, region).                           | None          |
+| `RCLONE_CONFIG_DESTINATION_*`  | ✅       | Configuration for the destination remote (e.g., provider, keys, region).                      | None          |
 
 ---
 
-## **Examples of TIME_ZONE**
+### **Examples of TIME_ZONE**
 
-| Time Zone      | Example Value      |
-|----------------|--------------------|
-| UTC            | `UTC`             |
-| Asia/Kolkata   | `Asia/Kolkata`    |
-| America/New_York | `America/New_York` |
+| Time Zone         | Example Value      |
+|-------------------|--------------------|
+| UTC               | `UTC`             |
+| Asia/Kolkata      | `Asia/Kolkata`    |
+| America/New_York  | `America/New_York`|
 
 ---
 
-### **Logs**
+## **Logs**
 
-- Copy activity logs are stored in `/var/log/copy.log` inside the container.
-- Logs can also be monitored in real-time via Docker logs:
+- **File Logs**: Persistent logs are saved in `/var/log/copy.log` inside the container.  
+- **Real-Time Logs**: Monitor logs in real-time via Docker:  
 
 ```bash
 docker logs -f <container-name>
@@ -97,12 +112,12 @@ docker logs -f <container-name>
 
 ---
 
-### **Example Use Case**
+## **Advanced Use Case**
 
-#### Scenario:
-You want to copy data from an AWS S3 bucket to a DigitalOcean Space every hour with progress tracking.
+#### **Scenario**  
+Copy data from an AWS S3 bucket to a DigitalOcean Space every hour with optimized Rclone options.  
 
-#### Environment Variables:
+#### **Environment Variables**  
 ```bash
 BACKUP_CRON="0 * * * *"
 RCLONE_SOURCE="s3:my-source-bucket"
@@ -110,14 +125,14 @@ RCLONE_DESTINATION="do:my-destination-bucket"
 RCLONE_OPTIONS="--progress --fast-list --transfers=32 --checkers=64 --checksum"
 ```
 
-#### Command:
+#### **Command**  
 ```bash
 docker run --rm -it \
-    -e BACKUP_CRON="0 * * * *" \
-    -e RCLONE_SOURCE="s3:my-source-bucket" \
-    -e RCLONE_DESTINATION="do:my-destination-bucket" \
-    -e RCLONE_OPTIONS="--progress --fast-list --transfers=32 --checkers=64 --checksum" \
-    rclone-copy-cron
+  -e BACKUP_CRON="0 * * * *" \
+  -e RCLONE_SOURCE="s3:my-source-bucket" \
+  -e RCLONE_DESTINATION="do:my-destination-bucket" \
+  -e RCLONE_OPTIONS="--progress --fast-list --transfers=32 --checkers=64 --checksum" \
+  rclone-copy-cron
 ```
 
 ---
@@ -130,4 +145,4 @@ This image is open-source and available under the [MIT License](LICENSE).
 
 ### **Contributing**
 
-Feel free to open an issue or submit a pull request for improvements!
+Feel free to open an issue or submit a pull request for improvements!  
